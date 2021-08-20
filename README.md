@@ -1,2 +1,2 @@
-# Scinic_Roco_Integration
-Roco Scinic integration and debugging 
+# roco_scenic_integration
+roco scenic integration and debugging 
