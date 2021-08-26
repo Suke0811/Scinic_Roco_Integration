@@ -1,3 +1,7 @@
 [submodule "roco"]
 	path = roco
 	url = https://git.uclalemur.com/Suke/rocolib.git
+[submodule "scenic"]
+	path = scenic
+	url = https://github.com/BerkeleyLearnVerify/Scenic.git
+	branch = webots_updates
