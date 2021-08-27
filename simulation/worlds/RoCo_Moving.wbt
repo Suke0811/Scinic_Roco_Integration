@@ -1,0 +1,83 @@
+#VRML_SIM R2021b utf8
+WorldInfo {
+  basicTimeStep 10
+  coordinateSystem "NUE"
+  gpsReference 0 0 -0.072
+  contactProperties [
+    DEF Robot_Wheels ContactProperties {
+      material1 "Wheels"
+      material2 "Environment"
+      coulombFriction [
+        8
+      ]
+      bounce 0
+      bounceVelocity 10000000
+    }
+    DEF Robot_Body ContactProperties {
+      material1 "Robot_Body"
+      material2 "Environment"
+      coulombFriction [
+        0.1
+      ]
+      bounce 0
+      bounceVelocity 1e-07
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.12299557103281393 0.9739215563278578 0.19065385290162695 4.2908236989797715
+  position -3.3297011812967034 1.512716921212108 -1.3050050854757853
+}
+DEF Hill Solid {
+  translation -2.55 0 -0.5
+  children [
+    DEF HillShape Shape {
+      appearance Appearance {
+        material Material {
+          diffuseColor 0.3 0.2 0.2
+        }
+      }
+      geometry ElevationGrid {
+        height [
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.01345595661655342, 0.019432013358119487, 0.02482675442481552, 0.028062155215751037, 0.028062155215751037, 0.02482675442481552, 0.019432013358119487, 0.01345595661655342, 0, 0, 0.019432013358119487, 0.02806215521575103, 0.03585280759810719, 0.040525113936475336, 0.040525113936475336, 0.03585280759810719, 0.02806215521575103, 0.019432013358119487, 0, 0, 0.02482675442481552, 0.03585280759810719, 0.04580631112557584, 0.05177574928529726, 0.05177574928529726, 0.04580631112557584, 0.03585280759810719, 0.02482675442481552, 0, 0, 0.028062155215751037, 0.040525113936475336, 0.05177574928529726, 0.05852311937332982, 0.05852311937332982, 0.05177574928529726, 0.040525113936475336, 0.028062155215751037, 0, 0, 0.028062155215751037, 0.040525113936475336, 0.05177574928529726, 0.05852311937332982, 0.05852311937332982, 0.05177574928529726, 0.040525113936475336, 0.028062155215751037, 0, 0, 0.02482675442481552, 0.03585280759810719, 0.04580631112557584, 0.05177574928529726, 0.05177574928529726, 0.04580631112557584, 0.03585280759810719, 0.02482675442481552, 0, 0, 0.019432013358119487, 0.02806215521575103, 0.03585280759810719, 0.040525113936475336, 0.040525113936475336, 0.03585280759810719, 0.02806215521575103, 0.019432013358119487, 0, 0, 0.01345595661655342, 0.019432013358119487, 0.02482675442481552, 0.028062155215751037, 0.028062155215751037, 0.02482675442481552, 0.019432013358119487, 0.01345595661655342, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ]
+        xDimension 10
+        xSpacing 0.13250594110428005
+        zDimension 10
+        zSpacing 0.1111111111111111
+      }
+      castShadows FALSE
+    }
+  ]
+  boundingObject USE HillShape
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  contactMaterial "Environment"
+  floorSize 2.5 2.5
+}
+DEF Target Solid {
+  translation 1 0.4 1
+  children [
+    DEF Goal Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.8
+        radius 0.005
+      }
+    }
+  ]
+  name "Target"
+  boundingObject USE Goal
+}
+Robot {
+  name "Scenic Supervisor"
+  controller "scenic_supervisor"
+  supervisor TRUE
+}
