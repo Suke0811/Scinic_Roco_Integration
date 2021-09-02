@@ -18,12 +18,13 @@ fi
 
 # Install Scenic in a virtual environment (if one doesn't already exist)
 cd scenic
+source $HOME/.poetry/env
 poetry install
 source $(poetry env list --full-path)/bin/activate
 
 # Install RoCo in the virtualenv
 cd ../roco
-pip install -e .
+pip3 install -e .
 
 # Run the simulations
 cd ..

@@ -1,6 +1,7 @@
 from rocolib.library import getComponent
 
 
+
 length = 200
 width = 130
 height = 60
@@ -15,7 +16,6 @@ for length in range(80, 200, 50):
             dim = {"length": length, "width": width, "height": height}
             a = getComponent("Paperbot", length=length, width=width, height=height)
             a.makeOutput("designs/%(length)d_%(width)d_%(height)d/" %locals(), thickness=5, tree=False, display=False, Webots=True, Dimensions=dim)
-
 
 
 
