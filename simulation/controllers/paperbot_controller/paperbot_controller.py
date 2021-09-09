@@ -49,83 +49,150 @@ class Simulation:
         self.set_actions()
 
 class Algorithm:
-    def __init__(self):
+    def __init__(self, algorithm):
         self.gps_name = 'Globe_GPS'
         self.compass_name = 'Compass'
         self.left_servo_name = 'paperbot_left_drive_servo_h'
         self.right_servo_name = 'paperbot_right_drive_servo_h'
+        self.algorithm = algorithm
     
     def set_actions(self, devices):
         
-        target_location = [0, 0.8]  # in 2D
-        target_location_x = target_location[0]
-        target_location_y = target_location[1]
-        
-        L = 0.097
-        R = 0.04
-        
-        x_old = 0
-        y_old = -0.072
-        e_old = 0
-        dist_old = 0
+        if self.algorithm == 'go_to_target':
+            target_location = [0, 0.8]  # in 2D
+            target_location_x = target_location[0]
+            target_location_y = target_location[1]
+            
+            L = 0.097
+            R = 0.04
+            
+            x_old = 0
+            y_old = -0.072
+            e_old = 0
+            dist_old = 0
 
-        P_phi = 0.55
-        D_phi = 0.05
-        P_dist = 0.075
-        D_dist = 0.05
+            P_phi = 0.55
+            D_phi = 0.05
+            P_dist = 0.075
+            D_dist = 0.05
 
-        x_current = []
-        y_current = []
-        
-        xyz_current = devices[self.gps_name]['value']
-        x_current = xyz_current[0]
-        y_current = xyz_current[2]
-        
-        compass_value = devices[self.compass_name]['value']
-        cv_x = compass_value[0]
-        cv_y = compass_value[2]
-        cv_rad = math.atan2(cv_x, cv_y)
-        cv_deg = (cv_rad - 1.5708) / 3.1416 * 180.0
-        if x_current < 0 and y_current < 0:
-            if cv_deg < 0.0:
-                cv_deg = cv_deg + 0
-        else:
-            if cv_deg < 0.0:
-                cv_deg = cv_deg + 360
-        
-        phi = (cv_deg - 90) / 180.0 * 3.1416
-        phi_d = math.atan2(- y_current + target_location_y, - x_current + target_location_x)
-        
-        
-        
-        e_phi = phi_d - phi
-        e_phi_dot = e_phi - e_old
+            x_current = []
+            y_current = []
+            
+            xyz_current = devices[self.gps_name]['value']
+            x_current = xyz_current[0]
+            y_current = xyz_current[2]
+            
+            compass_value = devices[self.compass_name]['value']
+            cv_x = compass_value[0]
+            cv_y = compass_value[2]
+            cv_rad = math.atan2(cv_x, cv_y)
+            cv_deg = (cv_rad - 1.5708) / 3.1416 * 180.0
+            if x_current < 0 and y_current < 0:
+                if cv_deg < 0.0:
+                    cv_deg = cv_deg + 0
+            else:
+                if cv_deg < 0.0:
+                    cv_deg = cv_deg + 360
+            
+            phi = (cv_deg - 90) / 180.0 * 3.1416
+            phi_d = math.atan2(- y_current + target_location_y, - x_current + target_location_x)
+            
+            
+            
+            e_phi = phi_d - phi
+            e_phi_dot = e_phi - e_old
 
-        dist = math.sqrt((target_location_x - x_current)**2 + (target_location_y - y_current)**2)
-        
-        e_dist = dist
-        e_dist_dot = dist - dist_old
+            dist = math.sqrt((target_location_x - x_current)**2 + (target_location_y - y_current)**2)
+            
+            e_dist = dist
+            e_dist_dot = dist - dist_old
 
-        omega = P_phi * e_phi + D_phi * e_phi_dot
-        v = P_dist * e_dist + D_dist * e_dist_dot
+            omega = P_phi * e_phi + D_phi * e_phi_dot
+            v = P_dist * e_dist + D_dist * e_dist_dot
+            
+            left_speed = - (2 * v - omega * L) / (2 * R)
+            right_speed = - (2 * v + omega * L) / (2 * R)
+            
+            x_old = x_current
+            y_old = y_current
+            e_old = e_phi
+            dist_old = dist
+            
+            
+            devices[self.left_servo_name]['action'] = 1*left_speed
+            devices[self.right_servo_name]['action'] = 1*right_speed
         
-        left_speed = - (2 * v - omega * L) / (2 * R)
-        right_speed = - (2 * v + omega * L) / (2 * R)
+        if self.algorithm == 'single_GPS_target':
         
-        x_old = x_current
-        y_old = y_current
-        e_old = e_phi
-        dist_old = dist
+            target = 0.5
+            
+            
+            
+            xyz_current = devices[self.gps_name]['value']
+            x_current = xyz_current[0]
+            y_current = xyz_current[2]
+            
+            if y_current < target:
+                speed = 1
+            else:
+                speed = -1
+                
+            if target - 0.05 < y_current < target + 0.05:
+                devices[self.left_servo_name]['action'] = 0
+                devices[self.right_servo_name]['action'] = 0
+            else:
+                devices[self.left_servo_name]['action'] = speed
+                devices[self.right_servo_name]['action'] = speed
+            
+           
+                
+            
+                
+        if self.algorithm == 'double_GPS_target':
         
+            target = 0.5
+            
+            xyz_current1 = devices[self.gps1_name]['value']
+            y_current1 = xyz_current1[2]
+            
+            xyz_current2 = devices[self.gps2_name]['value']
+            y_current2 = xyz_current2[2]
+            
+            if target - 0.05 < y_current1 < target + 0.05 or target - 0.1 < y_current2 < target:
+                devices[self.left_servo_name]['action'] = 0
+                devices[self.right_servo_name]['action'] = 0
+            else:
+                devices[self.left_servo_name]['action'] = 1
+                devices[self.right_servo_name]['action'] = 1
+            
+            
         
-        devices[self.left_servo_name]['action'] = 1*left_speed
-        devices[self.right_servo_name]['action'] = 1*right_speed
+        if self.algorithm == 'face_east':
+        
+            compass_value = devices[self.compass_name]['value']
+            cv_x = compass_value[0]
+            cv_y = compass_value[2]
+            cv_rad = math.atan2(cv_x, cv_y)
+            cv_deg = (cv_rad - 1.5708) / 3.1416 * 180.0
+            
+            if 85.0 < cv_deg < 95.0:
+                devices[self.left_servo_name]['action'] = 0
+                devices[self.right_servo_name]['action'] = 0
+            else:
+                devices[self.left_servo_name]['action'] = 1
+                devices[self.right_servo_name]['action'] = -1
+                
+                
+                
+            
+            
     
 # initiate
 TIME_STEP = 64
 
 robot = Robot()
-algorithm = Algorithm()
+algorithm = Algorithm('single_GPS_target')
 simulation = Simulation(robot, 'graph-model.json', algorithm)
 simulation.make_devices()
 
