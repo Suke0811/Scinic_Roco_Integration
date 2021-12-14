@@ -1,18 +1,30 @@
 from RoCo_car import *
 
-param simulationsPerDesign = 4
+param simulationsPerDesign = 2
 param simulationTimeLimit = 40
 
-ego = Car at 0 @ 0.8,
-  with elevation 0.15
-#  with controller 'Wheel_Controller'
+param segments = ((0@0.8, 0@-0.9), (0@-0.9, 0.5@0.8))
+param segment = Uniform(*globalParameters.segments)
 
-target = Target at 0 @ -0.9
+startPos, endPos = globalParameters.segment[0], globalParameters.segment[1]
 
-# Hill at Range(-0.25, 0.25) @ 0,
-#   with width Range(1,2),
-#   with length 1,
-#   with height Range(0.02, 0.1)
+ego = Car at startPos, facing toward endPos,
+  with elevation 0.15,
+  with controller 'paperbot_controller',
+  with customData str(endPos)
+
+target = Target at endPos
+
+hill1 = Hill at Range(-0.25, 0.25) @ 0,
+  with width Range(1,2),
+  with length 1,
+  with height Range(0.02, 0.1)
+
+hill2 = Hill in workspace, with width 0.4, with length 0.4, with height 0.2
+
+Ground with width 2.5, with length 2.5,
+  with elevation 0.05, with gridSize 30,
+  with terrain [hill1, hill2]
 
 terminate when (distance to target) <= 0.25
 terminate after globalParameters.simulationTimeLimit seconds

@@ -1,3 +1,4 @@
+from collections import defaultdict
 import glob
 import os.path
 import sys
@@ -8,6 +9,9 @@ import scenic
 import scenic.simulators.webots
 from scenic.core.serialization import scenicToJSON
 import verifai
+
+import scenic.core.errors
+scenic.core.errors.showInternalBacktrace = True
 
 print('Starting new batch of simulations.')
 
@@ -33,16 +37,27 @@ scenario = scenic.scenarioFromFile('test.scenic')
 simulationsPerDesign = scenario.params['simulationsPerDesign']
 timestep = 10
 simulationTimeLimit = (1000 / timestep) * scenario.params['simulationTimeLimit']
+segments = scenario.params['segments']
 ss = verifai.samplers.ScenicSampler(scenario)
 
 # generate set of environments to test against
-scenes = {}
-scenesByID = {}
+envs = []
 for i in range(simulationsPerDesign):
-    scene, _ = scenario.generate()
-    point = ss.pointForScene(scene)
-    scenes[scene] = point
-    scenesByID[i] = point
+    env, _ = scenario.generate()
+    envs.append(env)
+
+scenes = defaultdict(dict)
+serializedScenes = defaultdict(dict)
+for i, env in enumerate(envs):
+    fixedObjects = range(2, len(scenario.objects))
+    scenario.conditionOn(scene=env, objects=fixedObjects)
+    for j, segment in enumerate(segments):
+        scenario.conditionOn(params={'segment': segment})
+        scene, _ = scenario.generate()
+        point = ss.pointForScene(scene)
+        scenes[i][j] = scene
+        serializedScenes[i][j] = point
+
 print(f'Generated {len(scenes)} environments to test against.')
 
 # set up simulator and run tests
@@ -59,12 +74,14 @@ for design, data in designData.items():
     torqueField = robot.getField('customData')
 
     # Run all tests
-    for i, scene in enumerate(scenes.keys()):
-        # Run a single test
-        simulation = simulator.simulate(scene, verbosity=2)
+    for i, subscenes in scenes.items():
+        results[i] = {}
+        for j, scene in subscenes.items():
+            # Run a single test
+            simulation = simulator.simulate(scene, verbosity=2)
 
-        # Collect results of the test
-        results[i] = simulation.records if simulation else None
+            # Collect results of the test
+            results[i][j] = simulation.records if simulation else None
 
     # Remove the robot node for subsequent tests
     topLevelNodes.removeMF(-1)
@@ -75,7 +92,7 @@ print('All tests complete.')
 
 # Write results to file
 outpath = '../../../results/results.json'
-data = dict(tests=scenesByID, designs=designData)
+data = dict(tests=serializedScenes, designs=designData)
 with open(outpath, 'w') as f:
     simplejson.dump(data, f, default=scenicToJSON)#, indent='\t')
 

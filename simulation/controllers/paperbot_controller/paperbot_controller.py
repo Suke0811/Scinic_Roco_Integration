@@ -1,7 +1,7 @@
 from controller import Robot
 from controller import GPS
 import math
-
+import sys
 
 
 # initiate
@@ -10,7 +10,12 @@ L = 0.097
 R = 0.04
 robot = Robot()
 
-target_location = [0, 0.8]  # in 2D
+cd = robot.getCustomData()
+if not cd:  # customData not set yet; Scenic will restart us once ready
+    sys.exit(0)
+target_location = [float(coord) for coord in cd[1:-1].split('@')]
+print(f'PAPERBOT moving to: {target_location}')
+#target_location = [0, 0.8]  # in 2D
 target_location_x = target_location[0]
 target_location_y = target_location[1]
 
@@ -21,7 +26,6 @@ compass = robot.getDevice('Compass')
 
 gps.enable(1)
 compass.enable(1)
-
 
 # setup motors
 left_motor = robot.getDevice('paperbot_left_drive_servo_h')
